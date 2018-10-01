@@ -24,8 +24,10 @@ assemble_url() {
 
 put() {
   local deb=$1
-  echo "Pushing $deb..."
-  curl -u$username:$password -XPUT "$(assemble_url $deb)" -T $deb
+  local url="$(assemble_url $deb)"
+
+  echo "PUT $url"
+  echo "$password" | curl -u$username -XPUT -T $deb $url
 }
 
 repository=$(attr source repository)
