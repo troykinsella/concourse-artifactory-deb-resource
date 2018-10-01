@@ -5,30 +5,16 @@ set -e
 exec 3>&1 # make stdout available as fd 3 for the result
 exec 1>&2 # redirect all output to stderr for logging
 
+source $(dirname $0)/common.sh
+
 source=$1
 cd $source
 
 payload=$(mktemp /tmp/artifactory-deb.XXXXXX)
-cat > $payload <&0
-
-attr() {
-  local type=$1
-  local name=$2
-  local val=$(jq -r ".$type.$name // \"\"" < $payload)
-  test -z "$val" && { echo "Must supply '$name' $type attribute"; exit 1; }
-  echo $val
-}
+cat > $payload <&
 
 assemble_properties() {
-  local props="deb.component=$component;"
-
-  for d in $(echo $distribution | jq -r '.[]'); do
-    props+="deb.distribution=$d;"
-  done
-
-  props+="deb.architecture=$architecture"
-
-  echo $props
+  echo "deb.component=$component;deb.distribution=$distribution;deb.architecture=$architecture"
 }
 
 assemble_url() {
@@ -45,16 +31,20 @@ repository=$(attr source repository)
 username=$(attr source username)
 password=$(attr source password)
 distribution=$(attr source distribution)
-if ! echo "$distribution" | egrep '^\[.*' > /dev/null; then
-  distribution="[\"$distribution\"]"
-fi
+debs=$(attr params debs)
 
 component=$(jq -r '.source.component // "main"' < $payload)
 components_dir=$(jq -r '.source.components_dir // "pool"' < $payload)
 architecture=$(jq -r '.source.architecture // "amd64"' < $payload)
 
-cd $source/
+cd $source
+cd $debs
+
+test -f ./version || { echo "version file not found"; exit 1; }
+version=$(cat ./version)
 
 jq -n '{
-  version: {}
+  version: {
+    number: "$version"
+  }
 }' >&3

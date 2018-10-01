@@ -1,2 +1,46 @@
-#!/bin/sh
-echo '{"version":{}}'
+#!/usr/bin/env bash
+
+set -ex
+
+exec 3>&1 # make stdout available as fd 3 for the result
+exec 1>&2 # redirect all output to stderr for loggin
+
+source $(dirname $0)/common.sh
+
+destination=$1
+
+if [ -z "$destination" ]; then
+  echo "usage: $0 <path/to/destination>" >&2
+  exit 1
+fi
+
+payload=$(mktemp /tmp/artifactory-deb.XXXXXX)
+cat > $payload <&0
+
+version_number=$(jq -r '.version.number // ""' < $payload)
+
+repository=$(attr source repository)
+distribution=$(attr source distribution)
+package=$(attr source package)
+
+fetch_archives=$(jq -r '.params.fetch_archives // false' < $payload)
+
+deb_sources > /etc/apt/sources.list
+rm -rf /var/cache/apt/archives/*
+rm -rf /var/lib/apt/lists/*
+apt-get update -y
+
+cd $destination
+
+if [ "$fetch_archives" = "true" ]; then
+  mkdir -p archives
+  apt-get install -y \
+    -o dir::cache::archives="$PWD/archives" \
+    --download-only $package
+fi
+
+apt-cache show $package > info
+
+jq -n "{
+  version: { number: $(echo $version_number | jq -R .)}
+}" >&3
