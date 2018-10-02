@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -ex
+set -e
 
 exec 3>&1 # make stdout available as fd 3 for the result
 exec 1>&2 # redirect all output to stderr for loggin
@@ -33,10 +33,16 @@ apt-get update -y
 cd $destination
 
 if [ "$fetch_archives" = "true" ]; then
+  echo "Fetching archives for $package=$version_number..."
+
   mkdir -p archives
   apt-get install -y \
     -o dir::cache::archives="$PWD/archives" \
-    --download-only $package
+    --download-only $package=$version_number
+
+  echo "Fetched archives: "
+  echo -e "Kb\tName"
+  ls -1s $PWD/archives | egrep '^.*\.deb' | awk '{printf("%6s\t%s\n", $1, $2)}'
 fi
 
 apt-cache show $package > info

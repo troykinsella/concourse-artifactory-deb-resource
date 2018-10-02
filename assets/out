@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -ex
+set -e
 
 exec 3>&1 # make stdout available as fd 3 for the result
 exec 1>&2 # redirect all output to stderr for logging
@@ -27,7 +27,9 @@ put() {
   local url="$(assemble_url $deb)"
 
   echo "PUT $url"
-  curl -Ss -u$username:$password -XPUT -T $deb $url || exit 1
+  if [ "$dry_run" = "false" ]; then
+    curl -Ss -u$username:$password -XPUT -T $deb $url || exit 1
+  fi
 }
 
 version_for() {
@@ -36,32 +38,28 @@ version_for() {
 }
 
 extract_version() {
-  # Ensure all supplied debs have the same version
-  for f in $(ls *.deb); do
-    local v=$(version_for $f)
-    if [ -z "$version" ]; then
-      local version=$v
-    else
-      test "$version" = "$v" || { echo "Debs must not be of mixed versions. Found $version, $v" >&2; exit 1; }
-    fi
-  done
-
-  echo $version
+  local main_deb=$(ls *.deb | egrep "^${package}_.*")
+  test -z "$main_deb" && { echo "Unable to locate deb archive: ${package}_<version>.deb" >&2; exit 1; }
+  version_for $main_deb
 }
 
 repository=$(attr source repository)
 username=$(attr source username)
 password=$(attr source password)
+package=$(attr source package)
 distribution=$(attr source distribution)
 debs=$(attr params debs)
 
 component=$(jq -r '.source.component // "main"' < $payload)
 components_dir=$(jq -r '.source.components_dir // "pool"' < $payload)
 architecture=$(jq -r '.source.architecture // "amd64"' < $payload)
+dry_run=$(jq -r '.params.dry_run // false' < $payload)
 
 cd $source/$debs
 
 version=$(extract_version)
+
+test "$dry_run" = "true" && echo "[dry run]"
 
 for f in $(ls *.deb); do
   put $f

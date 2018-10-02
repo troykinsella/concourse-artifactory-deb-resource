@@ -30,18 +30,3 @@ deb_sources() {
   done
   unset IFS
 }
-
-list_versions() {
-  local package=$(attr source package)
-  local filter="cat"
-  local version_pattern=$(jq -r '.source.version_pattern // ""' < $payload)
-  
-  if [ -n "$version_pattern" ]; then
-    filter="egrep ^${version_pattern}"
-  fi
-  apt-cache madison $package | awk '{print $3}' | $filter
-}
-
-latest_version() {
-  list_versions | head -1
-}
