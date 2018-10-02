@@ -30,6 +30,25 @@ put() {
   echo "$password" | curl -u$username -XPUT -T $deb $url
 }
 
+version_for() {
+  local deb=$1
+  dpkg-deb -I $deb | grep Version | awk '{print $2}'
+}
+
+extract_version() {
+  # Ensure all supplied debs have the same version
+  for f in ls *.deb; do
+    local v=$(version_for $deb)
+    if [ -z "$version" ]; then
+      local version=$v
+    else
+      test "$version" = "$v" || { echo "Debs must not be of mixed versions. Found $version, $v" >&2; exit 1; }
+    fi
+  done
+
+  echo $version
+}
+
 repository=$(attr source repository)
 username=$(attr source username)
 password=$(attr source password)
@@ -42,8 +61,7 @@ architecture=$(jq -r '.source.architecture // "amd64"' < $payload)
 
 cd $source/$debs
 
-test -f ./version || { echo "version file not found"; exit 1; }
-version=$(cat ./version)
+version=$(extract_version)
 
 for f in ls *.deb; do
   put $f
