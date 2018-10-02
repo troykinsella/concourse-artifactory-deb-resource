@@ -13,6 +13,7 @@ cat > $payload <&0
 version_number=$(jq -r '.version.number // ""' < $payload)
 
 deb_source > /etc/apt/sources.list
+rm -rf /var/lib/apt/lists/*
 apt-get update -y
 
 if [ -z "$version_number" ]; then
