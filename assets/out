@@ -27,7 +27,7 @@ put() {
   local url="$(assemble_url $deb)"
 
   echo "PUT $url"
-  echo "$password" | curl -u$username -XPUT -T $deb $url
+  echo "$password" | curl -Ss -u$username -XPUT -T $deb $url
 }
 
 version_for() {
@@ -38,7 +38,7 @@ version_for() {
 extract_version() {
   # Ensure all supplied debs have the same version
   for f in $(ls *.deb); do
-    local v=$(version_for $deb)
+    local v=$(version_for $f)
     if [ -z "$version" ]; then
       local version=$v
     else
