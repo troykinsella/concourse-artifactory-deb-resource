@@ -10,7 +10,7 @@ source $(dirname $0)/common.sh
 list_versions() {
   local filter="cat"
   if [ -n "$version_pattern" ]; then
-    filter="egrep ^${version_pattern}"
+    filter="egrep ${version_pattern}"
   fi
   apt-cache madison $package | awk '{print $3}' | $filter
 }
