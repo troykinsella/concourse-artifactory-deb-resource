@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+
+set -e
+
+exec 3>&1 # make stdout available as fd 3 for the result
+exec 1>&2 # redirect all output to stderr for loggin
+
+source $(dirname $0)/common.sh
+
+destination=$1
+
+if [ -z "$destination" ]; then
+  echo "usage: $0 <path/to/destination>" >&2
+  exit 1
+fi
+
+payload=$(mktemp /tmp/artifactory-deb.XXXXXX)
+cat > $payload <&0
+
+generate_info_files() {
+  apt-cache show $package=$version_number > info
+
+  IFS=$'\n'
+  for line in $(cat info); do
+    local key=$(echo $line | awk -F: '{print $1}')
+    local value=$(echo $line | sed "s/$key//" | sed -e 's/^:*//' | sed -e 's/^[[:space:]]*//')
+    key=$(echo $key | tr '[:upper:]' '[:lower:]')
+
+    if [ -n "$value" ]; then
+      # Key-value pair
+      local last_key=$key
+      echo $value > $key
+    else
+      # Continuation line of previous key-value pair
+      echo $line | sed -e 's/^[[:space:]]*//' >> $last_key
+    fi
+  done
+  unset IFS
+}
+
+do_fetch_archives() {
+  echo "Fetching archives for $package=$version_number..."
+
+  mkdir -p archives
+  apt-get install -y \
+    -o dir::cache::archives="$PWD/archives" \
+    --download-only $package=$version_number
+
+  echo "Fetched archives: "
+  echo -e "Kb\tName"
+  ls -1s $PWD/archives | egrep '^.*\.deb' | awk '{printf("%6s\t%s\n", $1, $2)}'
+}
+
+version_number=$(jq -r '.version.number // ""' < $payload)
+
+repository=$(attr source repository)
+distribution=$(attr source distribution)
+package=$(attr source package)
+
+fetch_archives=$(jq -r '.params.fetch_archives // false' < $payload)
+
+add_keys
+deb_sources > /etc/apt/sources.list
+rm -rf /var/cache/apt/archives/*
+rm -rf /var/lib/apt/lists/*
+apt-get update -y
+
+cd $destination
+
+if [ "$fetch_archives" = "true" ]; then
+  do_fetch_archives
+fi
+
+generate_info_files
+
+jq -n "{
+  version: { number: $(echo $version_number | jq -R .)}
+}" >&3

@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+
+set -e
+
+exec 3>&1 # make stdout available as fd 3 for the result
+exec 1>&2 # redirect all output to stderr for logging
+
+source $(dirname $0)/common.sh
+
+source=$1
+if [ -z "$source" ]; then
+  echo "usage: $0 <path/to/source>" >&2
+  exit 1
+fi
+
+payload=$(mktemp /tmp/artifactory-deb.XXXXXX)
+cat > $payload <&0
+
+assemble_properties() {
+  echo "deb.component=$component;deb.distribution=$distribution;deb.architecture=$architecture"
+}
+
+assemble_url() {
+  local deb=$1
+  echo "$repository/$components_dir/$deb;$(assemble_properties)"
+}
+
+put() {
+  local deb=$1
+  local url="$(assemble_url $deb)"
+
+  echo "PUT $url"
+  if [ "$dry_run" = "false" ]; then
+    curl -Ss -u$username:$password -XPUT -T $deb $url || exit 1
+  fi
+}
+
+version_for() {
+  local deb=$1
+  dpkg-deb -I $deb | grep Version | awk '{print $2}'
+}
+
+extract_version() {
+  local main_deb=$(ls *.deb | egrep "^${package}_.*")
+  test -z "$main_deb" && { echo "Unable to locate deb archive: ${package}_<version>.deb" >&2; exit 1; }
+  version_for $main_deb
+}
+
+repository=$(attr source repository)
+username=$(attr source username)
+password=$(attr source password)
+package=$(attr source package)
+distribution=$(attr source distribution)
+debs=$(attr params debs)
+
+component=$(jq -r '.source.component // "main"' < $payload)
+components_dir=$(jq -r '.source.components_dir // "pool"' < $payload)
+architecture=$(jq -r '.source.architecture // "amd64"' < $payload)
+dry_run=$(jq -r '.params.dry_run // false' < $payload)
+
+cd $source/$debs
+
+version=$(extract_version)
+
+test "$dry_run" = "true" && echo "[dry run]"
+
+for f in $(ls *.deb); do
+  put $f
+done
+
+jq -n "{
+  version: {
+    number: \"$version\"
+  }
+}" >&3
