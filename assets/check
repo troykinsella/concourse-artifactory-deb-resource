@@ -26,6 +26,7 @@ package=$(attr source package)
 version_pattern=$(jq -r '.source.version_pattern // ""' < $payload)
 version_number=$(jq -r '.version.number // ""' < $payload)
 
+add_keys
 deb_source > /etc/apt/sources.list
 rm -rf /var/lib/apt/lists/*
 apt-get update -y

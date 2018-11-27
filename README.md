@@ -16,6 +16,8 @@ via HTTP/S `PUT`.
    manipulated. This is the value of the `deb.distribution` property 
    when `put`ing to Artifactory. Example: `bionic`.
 * `package`: Required. The name of the deb package being manipulated.
+* `apt_keys`: Optional. A list of URLs at which GPG keys can be fetched and 
+  configured with `apt-key add`. 
 * `architecture`: Optional. Default: `amd64`. The target architecture of the deb
   package. Also the value of the `deb.architecture` property 
   when `put`ing to Artifactory.
@@ -69,7 +71,7 @@ deb <trusted_flag> <repository> <distribution> <component>
 Then following an `apt-get update`, the apt cache is queried for version
 information pertaining to the configured deb package. 
 
-### `in`: Fetch `deb` Information and Archives.
+### `in`: Fetch `deb` Information and Archives
 
 The apt cache is updated in the same manner as the `check` operation, 
 then queried for information pertaining to the version of the
@@ -127,7 +129,7 @@ jobs:
       archives: deb
 ```
 
-### `out`: Publish debs to Artifactory.
+### `out`: Publish debs to Artifactory
 
 Since building debs is a pretty customized process, this resource
 doesn't attempt to actually build deb files; It just accepts ones that
@@ -168,3 +170,7 @@ jobs:
     params:
       debs: built-debs 
 ```
+
+## License
+
+MIT © Troy Kinsella

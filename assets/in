@@ -59,6 +59,7 @@ package=$(attr source package)
 
 fetch_archives=$(jq -r '.params.fetch_archives // false' < $payload)
 
+add_keys
 deb_sources > /etc/apt/sources.list
 rm -rf /var/cache/apt/archives/*
 rm -rf /var/lib/apt/lists/*

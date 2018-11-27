@@ -23,10 +23,20 @@ deb_source() {
 
 deb_sources() {
   deb_source
-  local other_sources=$(jq -r '.source.other_sources // ""' < $payload)
+  local other_sources=$(jq -r '.source.other_sources // []' < $payload)
   IFS=$'\n'
   for s in $(echo "$other_sources" | jq -r '.[]'); do
     echo $s
+  done
+  unset IFS
+}
+
+add_keys() {
+  local apt_keys=$(jq -r '.source.apt_keys // []' < $payload)
+  IFS=$'\n'
+  for k in $(echo "$apt_keys" | jq -r '.[]'); do
+    echo $k
+    curl -SsL $k | apt-key add -; \
   done
   unset IFS
 }
