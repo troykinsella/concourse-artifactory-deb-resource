@@ -51,6 +51,8 @@ resources:
     repository: https://tools.example.com/artifactory/debian-local
     username: concourse
     password: naughty
+    apt_keys:
+    - https://tools.example.com/artifactory/api/gpg/key/public
     distribution: bionic
     trusted: true
     package: libwicked
