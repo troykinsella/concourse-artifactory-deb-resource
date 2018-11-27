@@ -9,6 +9,7 @@ RUN set -eux; \
     apt-get install -y \
       apt-transport-https \
       curl \
+      gnupg \
       jq; \
     apt-get clean all; \
     rm -rf /var/lib/apt/lists/*;
