@@ -149,8 +149,6 @@ build to produce `yourpackage-<version>.deb` and
 #### Parameters
 
 * `debs`: Required. The path to a directory containing `*.deb` files to publish.
-* `dry_run`: Optional. Default: `false`. A boolean indicating that, when `true`, deb
-  files will not actually be published to Artifactory.
 
 #### Example
 
