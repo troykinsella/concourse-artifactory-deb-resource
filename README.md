@@ -8,7 +8,7 @@ via HTTP/S `PUT`.
 
 ## Source Configuration
 
-* `repository`: Required: The URL at which the Debian repository in Artifactory 
+* `repository`: Required. The URL at which the Debian repository in Artifactory 
    can be located. Example: `https://tools.example.com/artifactory/debian-local`.
 * `username`: Required. The username with which to access the repository.
 * `password`: Required. The password with which to access the repository.

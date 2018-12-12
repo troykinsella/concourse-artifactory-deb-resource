@@ -29,8 +29,8 @@ put() {
   local deb=$1
   local url="$(assemble_url $deb)"
 
-  echo "PUT $url"
-  curl -Ss -u$username:$password -XPUT -T $deb $url || exit 1
+  echo "Publishing $url"
+  curl -L --fail -u$username:$password -XPUT -T $deb $url || exit 1
 }
 
 version_for() {
