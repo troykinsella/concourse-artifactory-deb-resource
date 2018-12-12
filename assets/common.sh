@@ -3,7 +3,7 @@ attr() {
   local type=$1
   local name=$2
   local val=$(jq -r ".$type.$name // \"\"" < $payload)
-  test -z "$val" && { echo "Must supply '$name' $type attribute"; exit 1; }
+  test -z "$val" && { echo "Must supply '$name' $type attribute" >&2; exit 1; }
   echo $val
 }
 
