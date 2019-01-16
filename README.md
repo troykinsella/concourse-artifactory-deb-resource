@@ -138,17 +138,25 @@ doesn't attempt to actually build deb files; It just accepts ones that
 you've built in a task script (for example), and publishes them
 to Artifactory.
 
-One of the deb archive files passed to the `put` step must be the
-package represented by the `source` configuration, and it's from that
-package that the version is extracted and returned from the this
-resource's `out` script. All deb archive files supplied will
-be published to Artifactory. This, for example, allows your
+All deb archive files that are located in the directory defined by
+the `debs` parameter will be published to Artifactory. This, for example, allows your
 build to produce `yourpackage-<version>.deb` and 
-`yourpackage-dev-<version>.deb`, and publish both in one step. 
+`yourpackage-dev-<version>.deb`, and publish both in one step.
+
+The version to be published is determined in one of two ways.
+One of the deb archive files passed to the `put` step is the 
+package represented by the `source` configuration, and has a
+name of `<package>-<version>.deb`. It's from this file that a
+version is extracted. However, there are cases where the deb(s)
+produced by a build do not match the above pattern. In these
+cases, a version file can be specified using the `version` parameter.
 
 #### Parameters
 
 * `debs`: Required. The path to a directory containing `*.deb` files to publish.
+* `version`: Optional. The path to a directory containing a version `number` file.
+  When specified, this parameter takes precedence over version extraction from
+  the package deb file.
 
 #### Example
 
