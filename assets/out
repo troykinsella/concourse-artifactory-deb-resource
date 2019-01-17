@@ -39,9 +39,13 @@ version_for() {
 }
 
 extract_version() {
-  local pattern=$(jq -r '.params.deb_pattern // "^${package}[_-].*\.deb"')
+  local pattern=$(jq -r '.params.deb_pattern // ""')
+  if [ -z "$pattern" ]; then
+    pattern="^${package}[_-].*\\.deb"
+  fi
+
   local main_deb=$(ls | egrep $pattern)
-  test -z "$main_deb" && { echo "Unable to locate deb archive: ${package}_<version>.deb" >&2; exit 1; }
+  test -z "$main_deb" && { echo "Unable to locate main deb archive with pattern: '$pattern'" >&2; exit 1; }
   version_for $main_deb
 }
 
