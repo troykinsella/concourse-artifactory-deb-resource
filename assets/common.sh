@@ -36,7 +36,7 @@ add_keys() {
   IFS=$'\n'
   for k in $(echo "$apt_keys" | jq -r '.[]'); do
     echo $k
-    curl -SsL $k | apt-key add -; \
+    curl -fSsL $k | apt-key add -; \
   done
   unset IFS
 }
