@@ -38,26 +38,10 @@ version_for() {
   dpkg-deb -I $deb | grep Version | awk '{print $2}'
 }
 
-extract_version_from_deb() {
+extract_version() {
   local main_deb=$(ls *.deb | egrep "^${package}_.*")
-  if [ -z "$main_deb" ]; then
-    echo "A 'version' parameter was not supplied, and a deb archive '${package}_<version>.deb', from which a version can be extracted, could not be found." >&2
-    exit 1
-  fi
+  test -z "$main_deb" && { echo "Unable to locate deb archive: ${package}_<version>.deb" >&2; exit 1; }
   version_for $main_deb
-}
-
-resolve_version() {
-  local version_dir=$(jq -r '.params.version // ""' < $payload)
-  if [ -n "$version_dir" ]; then
-    local version_file="${source}/${version_dir}/number"
-    local version=$(cat $version_file)
-    test -z "$version" && { echo "version not found in $version_file"; exit 1; }
-  else
-    local version=$(extract_version_from_deb)
-  fi
-
-  echo $version
 }
 
 repository=$(attr source repository)
@@ -73,7 +57,7 @@ architecture=$(jq -r '.source.architecture // "amd64"' < $payload)
 
 cd $source/$debs
 
-version=$(resolve_version)
+version=$(extract_version)
 
 for f in $(ls *.deb); do
   put $f
