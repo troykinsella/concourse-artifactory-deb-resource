@@ -149,6 +149,9 @@ build to produce `yourpackage-<version>.deb` and
 #### Parameters
 
 * `debs`: Required. The path to a directory containing `*.deb` files to publish.
+* `deb_pattern`: Optional. A regular expression that matches the main deb package file
+  (the same one represented in the source configuration), from which the version to publish
+  is extracted. Default: `^${package}[_-].*\.deb`, where `${package}` is the `source.package` field.
 
 #### Example
 
