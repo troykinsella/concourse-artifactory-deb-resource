@@ -57,21 +57,24 @@ repository=$(attr source repository)
 distribution=$(attr source distribution)
 package=$(attr source package)
 
+skip_all=$(jq -r '.params.skip_all // false' < $payload)
 fetch_archives=$(jq -r '.params.fetch_archives // false' < $payload)
 
-add_keys
-deb_sources > /etc/apt/sources.list
-rm -rf /var/cache/apt/archives/*
-rm -rf /var/lib/apt/lists/*
-apt-get update -y
+if [ "$skip_all" = "false" ]; then
+  add_keys
+  deb_sources > /etc/apt/sources.list
+  rm -rf /var/cache/apt/archives/*
+  rm -rf /var/lib/apt/lists/*
+  apt-get update -y
 
-cd $destination
+  cd $destination
 
-if [ "$fetch_archives" = "true" ]; then
-  do_fetch_archives
+  if [ "$fetch_archives" = "true" ]; then
+    do_fetch_archives
+  fi
+
+  generate_info_files
 fi
-
-generate_info_files
 
 jq -n "{
   version: { number: $(echo $version_number | jq -R .)}

@@ -112,6 +112,9 @@ Typical info files generated may be:
 
 * `fetch_archives`: Optional. Default: `false`. A boolean indicating
   whether or not deb package archives should be downloaded.
+* `skip_all`: Optional. Default: `false`. When `true`, skip `apt-get update`, 
+  populating output files, and fetching archives. This option supersedes `fetch_archives`.
+  Setting this option can be useful for side-stepping problematic `get` steps that follow `put`s.
 
 #### Example
 
