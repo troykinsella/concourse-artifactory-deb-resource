@@ -37,7 +37,7 @@ via HTTP/S `PUT`.
 ### Example
 
 ```yaml
-resources_types:
+resource_types:
 - name: deb-package
   type: docker-image
   source:
