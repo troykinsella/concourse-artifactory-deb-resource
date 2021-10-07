@@ -12,11 +12,11 @@ list_versions() {
   if [ -n "$version_pattern" ]; then
     filter="egrep ${version_pattern}"
   fi
-  apt-cache madison $package | awk '{print $3}' | $filter
+  apt-cache madison $package | awk '{print $3}' | $filter | tac
 }
 
 latest_version() {
-  list_versions | head -1
+  list_versions | tail -1
 }
 
 payload=$(mktemp /tmp/artifactory-deb.XXXXXX)
