@@ -1,4 +1,4 @@
-FROM ubuntu:bionic
+FROM ubuntu:jammy
 LABEL maintainer="Troy Kinsella <troy.kinsella@gmail.com>"
 
 COPY assets/* /opt/resource/

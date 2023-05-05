@@ -39,7 +39,7 @@ version_for() {
 }
 
 extract_version() {
-  local pattern=$(jq -r '.params.deb_pattern // ""')
+  local pattern=$(jq -r '.params.deb_pattern // ""' < $payload)
   if [ -z "$pattern" ]; then
     pattern="^${package}[_-].*\\.deb"
   fi
