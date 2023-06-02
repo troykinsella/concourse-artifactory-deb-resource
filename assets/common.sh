@@ -35,8 +35,8 @@ add_keys() {
   local apt_keys=$(jq -r '.source.apt_keys // []' < $payload)
   IFS=$'\n'
   for k in $(echo "$apt_keys" | jq -r '.[]'); do
-    echo $k
-    curl -fSsL $k | apt-key add -; \
+    echo "Installing apt key: $k"
+    curl -fSsL -o "/etc/apt/trusted.gpg.d/$(echo "$k" | md5sum).asc" "$k"
   done
   unset IFS
 }
